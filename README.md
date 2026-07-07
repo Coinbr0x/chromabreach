@@ -1,16 +1,21 @@
-# React + Vite
+# Chroma Breach Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A premium, high-performance landing page for **Chroma Breach**, a cyberpunk indie roguelite action game.
 
-Currently, two official plugins are available:
+The website features a highly optimized, scroll-scrubbed background animation that syncs perfectly with the user's scroll depth. To guarantee 60fps performance on desktop browsers, the background video is pre-downloaded as an in-memory blob and sliced into frame-by-frame `ImageBitmap` representations rendered to an HTML5 Canvas, bypassing standard browser video-seeking latency completely. On mobile devices, it gracefully degrades to skip the extraction overhead entirely.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Tech Stack
 
-## React Compiler
+- **Frontend Core:** React, HTML5 Canvas, JavaScript (ES6+)
+- **Build Tool:** Vite
+- **Styling:** TailwindCSS, CSS Variables
+- **Animations:** Framer Motion (custom loading screen, transitions)
+- **Icons:** Lucide React
+- **Deployment:** Firebase Hosting
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Optimizations
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **Canvas Frame Extraction:** Pre-extracts 60 frames into RAM for lag-free scroll scrubbing.
+- **Loading Overlay:** Smart SVG loading indicator tracking both asset download progress and frame decoding status.
+- **Mobile Check:** Skips video extraction on mobile devices to preserve bandwidth, battery, and rendering performance.
+- **All-Keyframe Encoding:** Custom H.264 video encoding where every frame is an IDR-frame (Intra-coded), reducing random-access decoding latency.
