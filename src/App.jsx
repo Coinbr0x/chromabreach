@@ -36,7 +36,7 @@ function useTypewriter(text, speed = 38, startDelay = 600) {
 export default function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
-  
+
   // Typewriter hook usage
   const { displayed: typewriterText, done: typewriterDone } = useTypewriter(
     "we'd love to\nhear from you!",
@@ -79,7 +79,7 @@ export default function App() {
       return new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error(`Timeout: ${label} after ${ms}ms`)), ms);
         promise.then((val) => { clearTimeout(timer); resolve(val); })
-               .catch((err) => { clearTimeout(timer); reject(err); });
+          .catch((err) => { clearTimeout(timer); reject(err); });
       });
     };
 
@@ -295,8 +295,8 @@ export default function App() {
   const serviceOptions = ["Brand", "Digital", "Campaign", "Other"];
 
   const handlePillClick = (service) => {
-    setSelectedServices((prev) => 
-      prev.includes(service) 
+    setSelectedServices((prev) =>
+      prev.includes(service)
         ? prev.filter(s => s !== service)
         : [...prev, service]
     );
@@ -395,10 +395,10 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       {/* Background Video Frames (Fixed behind content, rendered to canvas) */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none w-full h-full bg-cyber-dark">
-        <canvas 
+        <canvas
           ref={canvasRef}
           className="w-full h-full object-contain object-center opacity-40 lg:opacity-30 filter saturate-150 contrast-125"
           style={{ willChange: 'transform', transform: 'translateZ(0)' }}
@@ -430,12 +430,12 @@ export default function App() {
           <span className="opacity-40 text-cyber-purple">,&nbsp;</span>
           <button onClick={() => scrollToSection('waitlist')} className="text-white/80 hover:text-cyber-cyan transition-colors px-2">Waitlist</button>
           <span className="opacity-40 text-cyber-purple">,&nbsp;</span>
-          <a href="https://github.com" target="_blank" rel="noreferrer" className="text-white/80 hover:text-cyber-cyan transition-colors px-2">Source</a>
+          <a href="https://github.com/Coinbr0x/chromabreach" target="_blank" rel="noreferrer" className="text-white/80 hover:text-cyber-cyan transition-colors px-2">Source</a>
         </nav>
 
         {/* Desktop CTA (Right) */}
         <div className="hidden md:block">
-          <button 
+          <button
             onClick={() => scrollToSection('waitlist')}
             className="text-[18px] text-cyber-pink font-mono tracking-widest uppercase border border-cyber-pink/40 px-4 py-2 hover:bg-cyber-pink/15 hover:shadow-[0_0_15px_rgba(255,0,127,0.4)] transition-all duration-300 relative group overflow-hidden"
           >
@@ -445,8 +445,8 @@ export default function App() {
         </div>
 
         {/* Hamburger button visible below md */}
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="md:hidden flex flex-col justify-between h-[14px] w-6 z-50 relative focus:outline-none"
           aria-label="Toggle Menu"
         >
@@ -456,16 +456,15 @@ export default function App() {
         </button>
 
         {/* Mobile Navigation Overlay */}
-        <div 
-          className={`fixed inset-0 z-40 bg-cyber-dark/95 backdrop-blur-md flex flex-col justify-center items-center transition-all duration-300 ${
-            isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
+        <div
+          className={`fixed inset-0 z-40 bg-cyber-dark/95 backdrop-blur-md flex flex-col justify-center items-center transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+            }`}
         >
           <nav className="flex flex-col gap-8 text-center text-2xl font-mono">
             <button onClick={() => scrollToSection('overview')} className="text-white hover:text-cyber-cyan transition-colors">Overview</button>
             <button onClick={() => scrollToSection('media')} className="text-white hover:text-cyber-pink transition-colors">Media</button>
             <button onClick={() => scrollToSection('waitlist')} className="text-white hover:text-cyber-cyan transition-colors">Waitlist</button>
-            <button 
+            <button
               onClick={() => scrollToSection('waitlist')}
               className="mt-4 px-8 py-3 border border-cyber-pink text-cyber-pink hover:bg-cyber-pink/10 transition-colors uppercase tracking-widest text-lg"
             >
@@ -477,10 +476,10 @@ export default function App() {
 
       {/* Content Layout Container */}
       <div className="relative z-10 flex flex-col w-full pb-8 lg:pb-0 lg:min-h-screen pt-24 sm:pt-28">
-        
+
         {/* Overarching layout engine */}
         <main id="spade-hero" className="w-full max-w-7xl mx-auto px-6 py-12 flex-1 flex flex-col justify-center">
-          
+
           {/* Hero Section Info */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center mb-16">
             <div className="lg:col-span-7 space-y-6 text-left">
@@ -488,27 +487,27 @@ export default function App() {
                 <span className="w-2 h-2 rounded-full bg-cyber-pink animate-pulse" />
                 VIRTUAL NODE DETECTED // PROTOCOL 77
               </div>
-              
+
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold font-mono tracking-tight text-white leading-tight">
                 BREACH THE GRID.<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-pink neon-text-pink">
                   RECLAIM CHROMA.
                 </span>
               </h1>
-              
+
               <p className="text-lg md:text-xl text-neutral-300 leading-relaxed font-sans max-w-2xl">
                 Armed with color-coded hacking modules, dive into the core of OmniCorp. Match wavelengths, disrupt hostile firewalls, and bypass lethal neural protocols. A synthwave-infused roguelike of tactical spectrum control.
               </p>
 
               {/* Waitlist and Platform Availability */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-6 pt-4">
-                <button 
+                <button
                   onClick={() => scrollToSection('waitlist')}
                   className="px-8 py-4 bg-gradient-to-r from-cyber-pink to-cyber-purple text-white font-mono uppercase tracking-widest font-semibold hover:shadow-[0_0_20px_rgba(255,0,127,0.6)] transition-all duration-300 flex items-center justify-center gap-3 group"
                 >
                   Join the Waitlist <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
-                
+
                 <div className="space-y-1">
                   <span className="text-xs font-mono text-cyber-cyan uppercase tracking-widest block">Available Soon on:</span>
                   <div className="flex items-center gap-3 text-neutral-400">
@@ -521,7 +520,7 @@ export default function App() {
                 </div>
               </div>
             </div>
-            
+
             <div className="lg:col-span-5 hidden lg:block">
               {/* Interactive terminal graphic */}
               <div className="border border-cyber-cyan/30 bg-cyber-card/70 p-6 rounded-lg shadow-[0_0_30px_rgba(0,240,255,0.1)] font-mono text-xs text-cyber-cyan space-y-3 relative overflow-hidden">
@@ -532,7 +531,7 @@ export default function App() {
                 <p>&gt; CONNECTING TO OMNICORP_NODE_9...</p>
                 <p className="text-cyber-pink">&gt; ALERT: FIREWALL FREQUENCY IS SHIFTING [MAGENTA]</p>
                 <div className="w-full bg-cyber-dark h-2 rounded border border-cyber-cyan/20 overflow-hidden">
-                  <motion.div 
+                  <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: "82%" }}
                     transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
@@ -552,7 +551,7 @@ export default function App() {
               // GAMEPLAY_CAPSULES
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
+
               {/* Card 1: Game Screenshot 1 */}
               <div className="bg-cyber-card/40 border border-cyber-purple/20 hover:border-cyber-pink/50 rounded-xl overflow-hidden hover:shadow-[0_0_20px_rgba(255,0,127,0.2)] transition-all duration-300 group flex flex-col">
                 <div className="bg-cyber-dark/80 px-4 py-2 border-b border-cyber-purple/10 flex justify-between items-center text-xs font-mono text-neutral-400">
@@ -560,9 +559,9 @@ export default function App() {
                   <span className="text-[10px] text-cyber-pink animate-pulse">● ACTIVE</span>
                 </div>
                 <div className="relative aspect-video overflow-hidden">
-                  <img 
-                    src="/game1.png" 
-                    alt="Chroma Breach Screenshot 1" 
+                  <img
+                    src="/game1.png"
+                    alt="Chroma Breach Screenshot 1"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter saturate-125"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-60" />
@@ -586,9 +585,9 @@ export default function App() {
                   <span className="text-[10px] text-cyber-cyan animate-pulse">● STABLE</span>
                 </div>
                 <div className="relative aspect-video overflow-hidden">
-                  <img 
-                    src="/game2.png" 
-                    alt="Chroma Breach Screenshot 2" 
+                  <img
+                    src="/game2.png"
+                    alt="Chroma Breach Screenshot 2"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter saturate-125"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-60" />
@@ -612,9 +611,9 @@ export default function App() {
                   <span className="text-[10px] text-cyber-purple animate-pulse">● THREAT</span>
                 </div>
                 <div className="relative aspect-video overflow-hidden">
-                  <img 
-                    src="/game3.png" 
-                    alt="Chroma Breach Screenshot 3" 
+                  <img
+                    src="/game3.png"
+                    alt="Chroma Breach Screenshot 3"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 filter saturate-125"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-cyber-dark to-transparent opacity-60" />
@@ -639,7 +638,7 @@ export default function App() {
             {/* Ambient glows inside overview card */}
             <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full bg-cyber-cyan/10 blur-[100px]" />
             <div className="absolute -bottom-32 -right-32 w-64 h-64 rounded-full bg-cyber-pink/10 blur-[100px]" />
-            
+
             <div className="max-w-4xl mx-auto space-y-8 text-left">
               <div className="flex items-center gap-3">
                 <div className="h-px flex-1 bg-gradient-to-r from-transparent to-cyber-cyan/40" />
@@ -648,7 +647,7 @@ export default function App() {
                 </h2>
                 <div className="h-px flex-1 bg-gradient-to-l from-transparent to-cyber-cyan/40" />
               </div>
-              
+
               <div className="space-y-6">
                 <h3 className="text-2xl font-mono text-white tracking-wider">
                   BREACH THE GRID. RECLAIM THE CHROMA.
@@ -668,7 +667,7 @@ export default function App() {
                     <p className="text-sm text-neutral-400">Dynamically shift your combat frequencies between Cyan, Magenta, and Yellow to break corresponding enemy firewall shields.</p>
                   </div>
                 </div>
-                
+
                 <div className="bg-cyber-dark/40 border border-cyber-purple/20 p-5 rounded-lg flex items-start gap-4">
                   <div className="p-2.5 bg-cyber-cyan/10 border border-cyber-cyan/20 rounded text-cyber-cyan shrink-0">
                     <Cpu className="w-5 h-5" />
@@ -678,7 +677,7 @@ export default function App() {
                     <p className="text-sm text-neutral-400">Collect and upgrade hacking modules, digital viruses, and kinetic subroutines to customize your combat style.</p>
                   </div>
                 </div>
-                
+
                 <div className="bg-cyber-dark/40 border border-cyber-purple/20 p-5 rounded-lg flex items-start gap-4">
                   <div className="p-2.5 bg-cyber-purple/10 border border-cyber-purple/20 rounded text-cyber-purple shrink-0">
                     <Compass className="w-5 h-5" />
@@ -688,7 +687,7 @@ export default function App() {
                     <p className="text-sm text-neutral-400">Face randomized mainframe architectures where each run features unique room layouts, hostile security subroutines, and rare hack terminals.</p>
                   </div>
                 </div>
-                
+
                 <div className="bg-cyber-dark/40 border border-cyber-purple/20 p-5 rounded-lg flex items-start gap-4">
                   <div className="p-2.5 bg-cyber-green/10 border border-cyber-green/20 rounded text-cyber-green shrink-0">
                     <Layers className="w-5 h-5" />
@@ -704,9 +703,9 @@ export default function App() {
 
           {/* Contact / Waitlist Section with Typewriter Hook & Pills */}
           <section id="waitlist" className="max-w-4xl mx-auto w-full py-8 scroll-mt-24 text-left">
-            
+
             {/* Typewriter Hook & Headline */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -721,7 +720,7 @@ export default function App() {
             </motion.div>
 
             {/* Secondary Description Text */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1, duration: 0.6 }}
@@ -749,11 +748,10 @@ export default function App() {
                       onClick={() => handlePillClick(service)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`px-6 py-3 font-mono tracking-wider text-sm border transition-all duration-200 flex items-center gap-2 rounded-full cursor-pointer ${
-                        isActive 
-                          ? 'bg-cyber-pink text-white border-cyber-pink shadow-lg shadow-cyber-pink/20' 
-                          : 'bg-cyber-dark/40 text-cyber-cyan border-cyber-cyan/30 hover:bg-cyber-cyan/10 hover:border-cyber-cyan'
-                      }`}
+                      className={`px-6 py-3 font-mono tracking-wider text-sm border transition-all duration-200 flex items-center gap-2 rounded-full cursor-pointer ${isActive
+                        ? 'bg-cyber-pink text-white border-cyber-pink shadow-lg shadow-cyber-pink/20'
+                        : 'bg-cyber-dark/40 text-cyber-cyan border-cyber-cyan/30 hover:bg-cyber-cyan/10 hover:border-cyber-cyan'
+                        }`}
                     >
                       <AnimatePresence>
                         {isActive && (
@@ -799,8 +797,8 @@ export default function App() {
                         <span className="text-cyber-cyan">Ready to inquire about: </span>
                         <span className="text-white font-bold">{selectedServices.join(", ")}</span>
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => alert(`Submitting inquiry for: ${selectedServices.join(', ')}`)}
                         className="text-cyber-pink font-mono text-xs uppercase tracking-widest font-semibold flex items-center gap-2 group cursor-pointer border border-cyber-pink/20 hover:border-cyber-pink px-4 py-2 hover:bg-cyber-pink/10 transition-all rounded-md"
                       >
@@ -816,13 +814,13 @@ export default function App() {
             <div className="bg-cyber-card/30 border border-cyber-purple/20 p-6 sm:p-8 rounded-2xl backdrop-blur-sm mt-8">
               <h4 className="text-xl font-mono text-white mb-4 uppercase tracking-widest">// SECURE WAITLIST TERMINAL</h4>
               <form onSubmit={(e) => { e.preventDefault(); alert("Hacking channel established! You have been added to the waitlist."); }} className="flex flex-col sm:flex-row gap-4">
-                <input 
-                  type="email" 
-                  required 
-                  placeholder="ENTER_YOUR_NEURAL_EMAIL@GRID.COM" 
+                <input
+                  type="email"
+                  required
+                  placeholder="ENTER_YOUR_NEURAL_EMAIL@GRID.COM"
                   className="flex-1 bg-cyber-dark/80 border border-cyber-cyan/30 px-4 py-3 rounded font-mono text-cyber-cyan text-sm focus:outline-none focus:border-cyber-pink focus:ring-1 focus:ring-cyber-pink placeholder:text-cyber-cyan/30"
                 />
-                <button 
+                <button
                   type="submit"
                   className="px-6 py-3 bg-cyber-cyan text-cyber-dark font-mono uppercase font-bold tracking-widest hover:bg-cyber-pink hover:text-white transition-colors duration-300 shadow-[0_0_15px_rgba(0,240,255,0.3)] hover:shadow-[0_0_15px_rgba(255,0,127,0.5)]"
                 >
@@ -830,7 +828,7 @@ export default function App() {
                 </button>
               </form>
             </div>
-            
+
           </section>
 
         </main>
@@ -840,14 +838,14 @@ export default function App() {
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-xl text-white tracking-widest font-bold neon-text-cyan">MAINFRAME</span>
+                <span className="font-mono text-xl text-white tracking-widest font-bold neon-text-cyan">LAIZDEV</span>
                 <span className="text-cyber-pink text-xs select-none">✸</span>
               </div>
               <p className="text-sm text-neutral-400 leading-relaxed font-sans">
-                Indie game development studio building high-fidelity interactive digital systems. Code is SAFU.
+                Made with Gemini for demonstration purposes only.
               </p>
               <div className="flex gap-4 text-neutral-400">
-                <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-github text-lg" /></a>
+                <a href="https://github.com/Coinbr0x/chromabreach" target="_blank" rel="noreferrer" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-github text-lg" /></a>
                 <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-twitter text-lg" /></a>
                 <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-youtube text-lg" /></a>
                 <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-discord text-lg" /></a>
