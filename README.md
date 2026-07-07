@@ -1,4 +1,4 @@
-# Chroma Breach Landing Page
+# Chroma Breach Landing Page (Showcase)
 
 A premium, high-performance landing page for **Chroma Breach**, a cyberpunk indie roguelite action game.
 
