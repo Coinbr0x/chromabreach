@@ -44,87 +44,247 @@ export default function App() {
     600
   );
 
-  // Background video scrubbing logic (synced with page scroll and smoothed via RAF lerp)
-  const videoRef = useRef(null);
-  const targetTimeRef = useRef(0);
+  // Detect mobile — skip video entirely on mobile devices
+  const isMobile = typeof navigator !== 'undefined' && (
+    /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 1 && window.innerWidth < 1024)
+  );
+
+  // Canvas-based frame scrubbing: extract all frames upfront, draw on scroll (zero decoder lag)
+  const canvasRef = useRef(null);
+  const framesRef = useRef([]); // Array of ImageBitmap
+  const targetFrameRef = useRef(0);
+  const currentFrameRef = useRef(0);
+  const totalFramesRef = useRef(0);
+  const [framesReady, setFramesReady] = useState(isMobile); // Skip loading on mobile
+  const [loadProgress, setLoadProgress] = useState(isMobile ? 100 : 0);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    // Skip all video work on mobile
+    if (isMobile) return;
+
+    const canvas = canvasRef.current;
+
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
 
     let animationFrameId;
     let objectUrl = null;
-    let lastSeekTime = 0;
-    const seekThrottleMs = 25; // Limit seeks to ~40fps to prevent decoder bottleneck
+    let cancelled = false;
 
-    const updateVideoProgress = () => {
-      if (!video.duration) return;
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (scrollableHeight <= 0) return;
-      
-      const scrollPercent = window.scrollY / scrollableHeight;
-      targetTimeRef.current = scrollPercent * video.duration;
+    const TOTAL_FRAMES = 60;
+
+    // Promise with timeout helper — rejects if timeout exceeded
+    const withTimeout = (promise, ms, label) => {
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error(`Timeout: ${label} after ${ms}ms`)), ms);
+        promise.then((val) => { clearTimeout(timer); resolve(val); })
+               .catch((err) => { clearTimeout(timer); reject(err); });
+      });
     };
 
-    const handleLoadedMetadata = () => {
-      updateVideoProgress();
-    };
+    // Extract all frames from video into ImageBitmap array
+    const extractFrames = async (videoSrc) => {
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.crossOrigin = 'anonymous';
+      video.setAttribute('webkit-playsinline', 'true');
+      video.src = videoSrc;
 
-    const handleScroll = () => {
-      updateVideoProgress();
-    };
+      // Wait for metadata with 8s timeout
+      await withTimeout(
+        new Promise((resolve, reject) => {
+          video.onloadedmetadata = resolve;
+          video.onerror = reject;
+        }),
+        8000,
+        'loadedmetadata'
+      );
 
-    // Smooth transition loop
-    const smoothPlaybackLoop = (timestamp) => {
-      if (video && video.duration) {
-        const diff = targetTimeRef.current - video.currentTime;
-        // Only seek if the difference is meaningful
-        if (Math.abs(diff) > 0.015) {
-          // If the decoder is not currently seeking and we have throttled correctly
-          if (!video.seeking && (timestamp - lastSeekTime >= seekThrottleMs)) {
-            // Linear interpolation (lerp) for smooth easing-out
-            const nextTime = video.currentTime + diff * 0.22;
-            video.currentTime = Math.max(0, Math.min(video.duration, nextTime));
-            lastSeekTime = timestamp;
+      // Wait for enough data to seek with 8s timeout
+      await withTimeout(
+        new Promise((resolve) => {
+          if (video.readyState >= 2) return resolve();
+          video.oncanplay = resolve;
+        }),
+        8000,
+        'canplay'
+      );
+
+
+      const duration = video.duration;
+      const w = video.videoWidth;
+      const h = video.videoHeight;
+
+      // Set canvas to video dimensions
+      canvas.width = w;
+      canvas.height = h;
+
+      const frames = [];
+      const offscreen = document.createElement('canvas');
+      offscreen.width = w;
+      offscreen.height = h;
+      const offCtx = offscreen.getContext('2d');
+
+      let consecutiveFailures = 0;
+
+      for (let i = 0; i < TOTAL_FRAMES; i++) {
+        if (cancelled) break;
+
+        const targetTime = (i / (TOTAL_FRAMES - 1)) * duration;
+        video.currentTime = targetTime;
+
+        try {
+          // Wait for seek with 3s timeout per frame
+          await withTimeout(
+            new Promise((resolve) => {
+              video.onseeked = resolve;
+            }),
+            3000,
+            `seek frame ${i}`
+          );
+
+          offCtx.drawImage(video, 0, 0, w, h);
+          const bitmap = await createImageBitmap(offscreen);
+          frames.push(bitmap);
+          consecutiveFailures = 0;
+        } catch (_) {
+          // Seek timed out — skip this frame
+          consecutiveFailures++;
+          console.warn(`Frame ${i} seek timed out, skipping`);
+
+          // If 5 consecutive frames fail, the decoder is stuck — abort early
+          if (consecutiveFailures >= 5) {
+            console.warn('Too many consecutive seek failures, aborting extraction');
+            break;
           }
         }
+
+        // Report progress: 10-100% (first 10% reserved for video download)
+        setLoadProgress(10 + Math.round(((i + 1) / TOTAL_FRAMES) * 90));
       }
-      animationFrameId = requestAnimationFrame(smoothPlaybackLoop);
+
+      // Clean up the temporary video
+      video.src = '';
+      video.load();
+
+      return frames;
     };
 
-    // Fetch video as blob to load into RAM (resolving HTTP Range Request latency during seek)
-    fetch('/Untitled design (1).mp4')
-      .then((res) => res.blob())
-      .then((blob) => {
+    // Scroll handler — just updates target frame index
+    const handleScroll = () => {
+      if (totalFramesRef.current === 0) return;
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return;
+      const scrollPercent = window.scrollY / scrollableHeight;
+      targetFrameRef.current = scrollPercent * (totalFramesRef.current - 1);
+    };
+
+    // Resize handler — match canvas display size to container
+    const handleResize = () => {
+      handleScroll();
+    };
+
+    // Smooth animation loop — lerp between current and target frame, draw to canvas
+    const renderLoop = () => {
+      const frames = framesRef.current;
+      if (frames.length === 0) {
+        animationFrameId = requestAnimationFrame(renderLoop);
+        return;
+      }
+
+      const diff = targetFrameRef.current - currentFrameRef.current;
+
+      if (Math.abs(diff) > 0.05) {
+        // Smooth lerp for buttery frame transitions
+        currentFrameRef.current += diff * 0.15;
+      } else {
+        currentFrameRef.current = targetFrameRef.current;
+      }
+
+      // Clamp and round to nearest frame
+      const frameIndex = Math.max(0, Math.min(frames.length - 1, Math.round(currentFrameRef.current)));
+      const frame = frames[frameIndex];
+
+      if (frame) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
+      }
+
+      animationFrameId = requestAnimationFrame(renderLoop);
+    };
+
+    // Kick off frame extraction
+    const init = async () => {
+      try {
+        // Fetch video as blob for in-memory access (track download progress)
+        const res = await fetch('/Untitled design (1).mp4');
+        const reader = res.body.getReader();
+        const contentLength = +res.headers.get('Content-Length') || 0;
+        const chunks = [];
+        let received = 0;
+
+        while (true) {
+          const { done: readerDone, value } = await reader.read();
+          if (readerDone) break;
+          chunks.push(value);
+          received += value.length;
+          if (contentLength > 0) {
+            // Download is 0-10% of total progress
+            setLoadProgress(Math.round((received / contentLength) * 10));
+          }
+        }
+
+        const blob = new Blob(chunks, { type: 'video/mp4' });
         objectUrl = URL.createObjectURL(blob);
-        video.src = objectUrl;
-        video.load();
-      })
-      .catch((err) => {
-        console.error('Error preloading video blob, falling back to network path:', err);
-        // Fallback to static path
-        video.src = '/Untitled design (1).mp4';
-      });
+
+        if (cancelled) return;
+
+        const frames = await extractFrames(objectUrl);
+
+        if (cancelled) {
+          frames.forEach((f) => f.close());
+          return;
+        }
+
+        framesRef.current = frames;
+        totalFramesRef.current = Math.max(frames.length, 1);
+        setLoadProgress(100);
+        setFramesReady(true);
+
+        // Draw first frame immediately
+        handleScroll();
+        const firstIdx = Math.min(Math.round(targetFrameRef.current), frames.length - 1);
+        if (frames[firstIdx]) {
+          ctx.drawImage(frames[firstIdx], 0, 0, canvas.width, canvas.height);
+          currentFrameRef.current = firstIdx;
+        }
+      } catch (err) {
+        console.error('Frame extraction failed:', err);
+        // Graceful degradation: reveal the site even if extraction failed
+        setLoadProgress(100);
+        setFramesReady(true);
+      }
+    };
+
+    init();
+
+    // Start render loop immediately (will no-op until frames are ready)
+    animationFrameId = requestAnimationFrame(renderLoop);
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-    // Initial sync
-    if (video.readyState >= 1) {
-      updateVideoProgress();
-    }
-
-    // Start animation loop
-    animationFrameId = requestAnimationFrame(smoothPlaybackLoop);
+    window.addEventListener('resize', handleResize);
 
     return () => {
+      cancelled = true;
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
-      if (video) {
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      }
+      // Release ImageBitmap GPU memory
+      framesRef.current.forEach((f) => f.close());
+      framesRef.current = [];
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
@@ -150,18 +310,98 @@ export default function App() {
     }
   };
 
+  // Prevent scrolling during loading
+  useEffect(() => {
+    if (!framesReady) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [framesReady]);
+
+  // SVG progress pie constants
+  const PIE_RADIUS = 54;
+  const PIE_CIRCUMFERENCE = 2 * Math.PI * PIE_RADIUS;
+  const pieOffset = PIE_CIRCUMFERENCE - (loadProgress / 100) * PIE_CIRCUMFERENCE;
+
   return (
     // General Page Structure (adapted for Cyberpunk theme)
     <div className="relative bg-cyber-dark text-white font-sans selection:bg-cyber-pink selection:text-white antialiased overflow-x-hidden flex flex-col lg:block lg:min-h-screen">
+
+      {/* Loading Overlay with Progress Pie */}
+      <AnimatePresence>
+        {!framesReady && (
+          <motion.div
+            key="loading-overlay"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            className="fixed inset-0 z-[9999] bg-cyber-dark flex flex-col items-center justify-center gap-6 select-none"
+          >
+            {/* Ambient background glow */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-cyber-purple/10 blur-[120px]" />
+              <div className="absolute top-1/3 left-1/3 w-[200px] h-[200px] rounded-full bg-cyber-cyan/8 blur-[80px]" />
+            </div>
+
+            {/* Progress Ring */}
+            <div className="relative">
+              <svg width="140" height="140" viewBox="0 0 140 140" className="-rotate-90">
+                {/* Track ring */}
+                <circle
+                  cx="70" cy="70" r={PIE_RADIUS}
+                  fill="none" stroke="rgba(157, 78, 221, 0.15)" strokeWidth="6"
+                />
+                {/* Progress ring */}
+                <circle
+                  cx="70" cy="70" r={PIE_RADIUS}
+                  fill="none"
+                  stroke="url(#progressGradient)"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={PIE_CIRCUMFERENCE}
+                  strokeDashoffset={pieOffset}
+                  style={{ transition: 'stroke-dashoffset 0.15s ease-out' }}
+                />
+                <defs>
+                  <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#00f0ff" />
+                    <stop offset="50%" stopColor="#9d4edd" />
+                    <stop offset="100%" stopColor="#ff007f" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              {/* Percentage text in center */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-mono font-bold text-white tabular-nums">
+                  {loadProgress}<span className="text-cyber-cyan text-lg">%</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Status text */}
+            <div className="text-center space-y-2">
+              <p className="text-sm font-mono text-cyber-cyan tracking-widest uppercase animate-pulse">
+                {loadProgress < 10 ? 'DOWNLOADING ASSETS' : 'EXTRACTING FRAMES'}
+              </p>
+              <p className="text-xs font-mono text-neutral-500 tracking-wider">
+                INITIALIZING NEURAL VIEWPORT
+              </p>
+            </div>
+
+            {/* Decorative scanline */}
+            <div className="absolute inset-0 scanline opacity-5 pointer-events-none" />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
-      {/* Background Video Component (Fixed behind content) */}
+      {/* Background Video Frames (Fixed behind content, rendered to canvas) */}
       <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none w-full h-full bg-cyber-dark">
-        <video 
-          ref={videoRef}
-          muted 
-          playsInline 
-          preload="auto"
+        <canvas 
+          ref={canvasRef}
           className="w-full h-full object-contain object-center opacity-40 lg:opacity-30 filter saturate-150 contrast-125"
+          style={{ willChange: 'transform', transform: 'translateZ(0)' }}
         />
         {/* Neon grid overlay behind content */}
         <div className="absolute inset-0 cyber-grid opacity-30 pointer-events-none" />
