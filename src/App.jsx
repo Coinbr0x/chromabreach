@@ -634,7 +634,7 @@ export default function App() {
           </div>
 
           {/* Game Overview Section (Rendered from overview.md content) */}
-          <section id="overview" className="bg-cyber-card/30 border border-cyber-cyan/15 rounded-2xl p-6 sm:p-10 mb-20 scroll-mt-24 backdrop-blur-md relative overflow-hidden">
+          <section id="overview" className="bg-cyber-card/35 border border-cyber-cyan/15 rounded-2xl p-6 sm:p-10 mb-20 scroll-mt-24 relative overflow-visible">
             {/* Ambient glows inside overview card */}
             <div className="absolute -top-32 -left-32 w-64 h-64 rounded-full bg-cyber-cyan/10 blur-[100px]" />
             <div className="absolute -bottom-32 -right-32 w-64 h-64 rounded-full bg-cyber-pink/10 blur-[100px]" />
@@ -652,7 +652,7 @@ export default function App() {
                 <h3 className="text-2xl font-mono text-white tracking-wider">
                   BREACH THE GRID. RECLAIM THE CHROMA.
                 </h3>
-                <p className="text-base sm:text-lg text-neutral-300 leading-relaxed">
+                <p className="text-base sm:text-lg text-neutral-300 leading-relaxed break-words">
                   Chroma Breach is a high-octane, synthwave-infused cyberpunk roguelite action game. Enter the neural network of OmniCorp as a rogue hacker armed with a weaponized color-matching deck. Match neon wavelengths, breach corporate firewall nodes, and defeat lethal security protocols in a fast-paced battle to free the city's digital grid.
                 </p>
               </div>
@@ -842,13 +842,10 @@ export default function App() {
                 <span className="text-cyber-pink text-xs select-none">✸</span>
               </div>
               <p className="text-sm text-neutral-400 leading-relaxed font-sans">
-                Made with Gemini for demonstration purposes only.
+                Made with Gemini
               </p>
               <div className="flex gap-4 text-neutral-400">
                 <a href="https://github.com/Coinbr0x/chromabreach" target="_blank" rel="noreferrer" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-github text-lg" /></a>
-                <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-twitter text-lg" /></a>
-                <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-youtube text-lg" /></a>
-                <a href="#" className="hover:text-cyber-pink transition-colors"><i className="fa-brands fa-discord text-lg" /></a>
               </div>
             </div>
             <div>
@@ -878,7 +875,7 @@ export default function App() {
             </div>
           </div>
           <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-cyber-purple/5 text-center text-xs text-neutral-500 font-mono">
-            <p>&copy; 2026 MAINFRAME. Chroma Breach and all related assets are trademarks of Mainframe Studio. All rights reserved.</p>
+            <p>&copy; 2026 LAIZDEV. For demonstration purposes only. All information is fictional.</p>
           </div>
         </footer>
       </div>
